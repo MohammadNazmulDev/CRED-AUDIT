@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}CRED-AUDIT | EXECUTIVE REPORT{% endblock %}
+
+{% block content %}
+<div class="report-section">
+    <h2>EXECUTIVE SECURITY REPORT</h2>
+    
+    <div class="report-header" style="border: 2px solid #000000; padding: 20px; margin-bottom: 20px;">
+        <h3>REPORT METADATA</h3>
+        <ul class="violations-list">
+            <li><strong>GENERATED:</strong> <span id="reportDate"></span></li>
+            <li><strong>SYSTEM:</strong> CRED-AUDIT PASSWORD SECURITY AUDITOR</li>
+            <li><strong>VERSION:</strong> 1.0</li>
+            <li><strong>CLASSIFICATION:</strong> CONFIDENTIAL</li>
+        </ul>
+    </div>
+    
+    <div class="executive-summary">
+        <h2>EXECUTIVE SUMMARY</h2>
+        
+        <div class="alert {% if security_grade in ['CRITICAL', 'WEAK'] %}alert-error{% else %}alert-info{% endif %}">
+            <strong>[OVERALL SECURITY GRADE: {{ security_grade }}]</strong> 
+            {% if total_audits > 0 %}
+                BASED ON {{ total_audits }} PASSWORD AUDITS
+            {% else %}
+                NO AUDIT DATA AVAILABLE
+            {% endif %}
+        </div>
+        
+        {% if total_audits > 0 %}
+        <h3>KEY METRICS</h3>
+        <ul class="violations-list">
+            <li><strong>TOTAL PASSWORDS ANALYZED:</strong> {{ total_audits }}</li>
+            <li><strong>AVERAGE SECURITY SCORE:</strong> {{ avg_score }}/100</li>
+            <li><strong>COMPROMISED PASSWORDS:</strong> {{ compromised_count }} ({{ ((compromised_count/total_audits)*100)|round(1) }}%)</li>
+            <li><strong>CRITICAL RISK PASSWORDS:</strong> {{ critical_passwords }} ({{ ((critical_passwords/total_audits)*100)|round(1) }}%)</li>
+            <li><strong>SECURE PASSWORDS:</strong> {{ secure_passwords }} ({{ ((secure_passwords/total_audits)*100)|round(1) }}%)</li>
+            <li><strong>CLEAN RATE:</strong> {{ clean_rate }}%</li>
+        </ul>
+        
+        <h3>SECURITY ASSESSMENT</h3>
+        <ul class="violations-list">
+            {% if avg_score >= 80 %}
+            <li>STRONG OVERALL PASSWORD SECURITY POSTURE</li>
+            <li>POLICY COMPLIANCE AT ACCEPTABLE LEVELS</li>
+            {% elif avg_score >= 60 %}
+            <li>MODERATE SECURITY WITH ROOM FOR IMPROVEMENT</li>
+            <li>SOME POLICY VIOLATIONS DETECTED</li>
+            {% elif avg_score >= 40 %}
+            <li>WEAK PASSWORD SECURITY REQUIRES ATTENTION</li>
+            <li>MULTIPLE POLICY VIOLATIONS IDENTIFIED</li>
+            {% else %}
+            <li>CRITICAL SECURITY VULNERABILITIES DETECTED</li>
+            <li>IMMEDIATE REMEDIATION REQUIRED</li>
+            {% endif %}
+            
+            {% if compromised_count > 0 %}
+            <li>{{ compromised_count }} PASSWORDS FOUND IN BREACH DATABASES</li>
+            {% else %}
+            <li>NO KNOWN COMPROMISED PASSWORDS DETECTED</li>
+            {% endif %}
+        </ul>
+        {% else %}
+        <div class="alert alert-info">
+            <strong>[INFO]</strong> NO AUDIT DATA AVAILABLE. PERFORM PASSWORD ANALYSIS TO GENERATE REPORT.
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="threat-assessment" style="margin-top: 30px;">
+        <h2>THREAT ASSESSMENT</h2>
+        
+        {% if total_audits > 0 %}
+        <div class="alert {% if compromised_count > 0 or critical_passwords > 0 %}alert-error{% else %}alert-info{% endif %}">
+            <strong>[THREAT LEVEL: {% if compromised_count > 0 or critical_passwords > 0 %}HIGH{% elif avg_score < 60 %}MODERATE{% else %}LOW{% endif %}]</strong>
+        </div>
+        
+        <h3>IDENTIFIED VULNERABILITIES</h3>
+        <ul class="violations-list">
+            {% if compromised_count > 0 %}
+            <li class="violation-item">{{ compromised_count }} PASSWORDS FOUND IN KNOWN BREACHES</li>
+            {% endif %}
+            {% if critical_passwords > 0 %}
+            <li class="violation-item">{{ critical_passwords }} PASSWORDS WITH CRITICAL WEAKNESS</li>
+            {% endif %}
+            {% if violation_counts %}
+                {% for violation, count in violation_counts.items() %}
+                <li>{{ violation.replace('_', ' ') }}: {{ count }} INSTANCES</li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+        
+        {% if recent_breaches %}
+        <h3>RECENT BREACH DETECTIONS</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>TIMESTAMP</th>
+                    <th>PASSWORD LENGTH</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for breach in recent_breaches %}
+                <tr>
+                    <td>{{ breach[2][:19] }}</td>
+                    <td>{{ breach[0] }} CHARS</td>
+                    <td><span class="breach-compromised">{{ breach[1] }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        
+        <h3>ATTACK VECTORS</h3>
+        <ul class="violations-list">
+            {% if compromised_count > 0 %}
+            <li>CREDENTIAL STUFFING ATTACKS USING BREACHED PASSWORDS</li>
+            {% endif %}
+            {% if critical_passwords > 0 %}
+            <li>BRUTE FORCE ATTACKS ON WEAK PASSWORDS</li>
+            {% endif %}
+            <li>DICTIONARY ATTACKS ON COMMON PATTERNS</li>
+            <li>SOCIAL ENGINEERING EXPLOITATION</li>
+        </ul>
+        {% else %}
+        <div class="alert alert-info">
+            <strong>[INFO]</strong> NO AUDIT DATA FOR THREAT ASSESSMENT. PERFORM PASSWORD ANALYSIS FIRST.
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="recommendations" style="margin-top: 30px;">
+        <h2>REMEDIATION RECOMMENDATIONS</h2>
+        
+        {% if total_audits > 0 %}
+        <h3>IMMEDIATE ACTIONS (0-7 DAYS)</h3>
+        <ul class="violations-list">
+            {% if compromised_count > 0 %}
+            <li class="violation-item">RESET {{ compromised_count }} COMPROMISED PASSWORDS IMMEDIATELY</li>
+            <li class="violation-item">NOTIFY AFFECTED USERS OF BREACH STATUS</li>
+            {% endif %}
+            {% if critical_passwords > 0 %}
+            <li class="violation-item">FORCE PASSWORD CHANGE FOR {{ critical_passwords }} CRITICAL RISK ACCOUNTS</li>
+            {% endif %}
+            {% if avg_score < 60 %}
+            <li>IMPLEMENT EMERGENCY PASSWORD POLICY ENFORCEMENT</li>
+            {% endif %}
+        </ul>
+        
+        <h3>SHORT-TERM IMPROVEMENTS (1-4 WEEKS)</h3>
+        <ul class="violations-list">
+            {% if 'MINIMUM_LENGTH_8' in violation_counts %}
+            <li>ENFORCE MINIMUM 8-CHARACTER PASSWORD REQUIREMENT</li>
+            {% endif %}
+            {% if 'UPPERCASE_REQUIRED' in violation_counts or 'LOWERCASE_REQUIRED' in violation_counts %}
+            <li>IMPLEMENT MIXED-CASE CHARACTER REQUIREMENTS</li>
+            {% endif %}
+            {% if 'SPECIAL_CHAR_REQUIRED' in violation_counts %}
+            <li>MANDATE SPECIAL CHARACTER USAGE IN PASSWORDS</li>
+            {% endif %}
+            <li>DEPLOY MULTI-FACTOR AUTHENTICATION</li>
+            <li>IMPLEMENT BREACH MONITORING SYSTEM</li>
+        </ul>
+        
+        <h3>LONG-TERM STRATEGY (1-6 MONTHS)</h3>
+        <ul class="violations-list">
+            <li>ENTERPRISE PASSWORD MANAGER DEPLOYMENT</li>
+            <li>REGULAR SECURITY AWARENESS TRAINING</li>
+            <li>AUTOMATED PASSWORD POLICY ENFORCEMENT</li>
+            <li>CONTINUOUS SECURITY MONITORING</li>
+        </ul>
+        
+        <h3>PRIORITY MATRIX</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ACTION</th>
+                    <th>PRIORITY</th>
+                    <th>TIMELINE</th>
+                    <th>IMPACT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if compromised_count > 0 %}
+                <tr>
+                    <td>RESET COMPROMISED PASSWORDS</td>
+                    <td><span class="breach-compromised">CRITICAL</span></td>
+                    <td>24-48 HOURS</td>
+                    <td>HIGH</td>
+                </tr>
+                {% endif %}
+                {% if critical_passwords > 0 %}
+                <tr>
+                    <td>STRENGTHEN WEAK PASSWORDS</td>
+                    <td><span class="breach-compromised">HIGH</span></td>
+                    <td>1 WEEK</td>
+                    <td>HIGH</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>IMPLEMENT MFA</td>
+                    <td><span class="breach-clean">MEDIUM</span></td>
+                    <td>2-4 WEEKS</td>
+                    <td>HIGH</td>
+                </tr>
+                <tr>
+                    <td>PASSWORD MANAGER ROLLOUT</td>
+                    <td><span class="breach-clean">MEDIUM</span></td>
+                    <td>1-3 MONTHS</td>
+                    <td>MEDIUM</td>
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-info">
+            <strong>[INFO]</strong> NO AUDIT DATA FOR RECOMMENDATIONS. PERFORM PASSWORD ANALYSIS FIRST.
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="compliance-status" style="margin-top: 30px;">
+        <h2>COMPLIANCE STATUS</h2>
+        
+        {% if total_audits > 0 %}
+        <h3>POLICY COMPLIANCE METRICS</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>REQUIREMENT</th>
+                    <th>COMPLIANCE RATE</th>
+                    <th>STATUS</th>
+                    <th>VIOLATIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>MINIMUM 8 CHARACTERS</td>
+                    <td>{{ (100 - (violation_counts.get('MINIMUM_LENGTH_8', 0) / total_audits * 100))|round(1) }}%</td>
+                    <td>
+                        {% if violation_counts.get('MINIMUM_LENGTH_8', 0) == 0 %}
+                        <span class="breach-clean">COMPLIANT</span>
+                        {% else %}
+                        <span class="breach-compromised">NON-COMPLIANT</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ violation_counts.get('MINIMUM_LENGTH_8', 0) }}</td>
+                </tr>
+                <tr>
+                    <td>UPPERCASE LETTERS</td>
+                    <td>{{ (100 - (violation_counts.get('UPPERCASE_REQUIRED', 0) / total_audits * 100))|round(1) }}%</td>
+                    <td>
+                        {% if violation_counts.get('UPPERCASE_REQUIRED', 0) == 0 %}
+                        <span class="breach-clean">COMPLIANT</span>
+                        {% else %}
+                        <span class="breach-compromised">NON-COMPLIANT</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ violation_counts.get('UPPERCASE_REQUIRED', 0) }}</td>
+                </tr>
+                <tr>
+                    <td>SPECIAL CHARACTERS</td>
+                    <td>{{ (100 - (violation_counts.get('SPECIAL_CHAR_REQUIRED', 0) / total_audits * 100))|round(1) }}%</td>
+                    <td>
+                        {% if violation_counts.get('SPECIAL_CHAR_REQUIRED', 0) == 0 %}
+                        <span class="breach-clean">COMPLIANT</span>
+                        {% else %}
+                        <span class="breach-compromised">NON-COMPLIANT</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ violation_counts.get('SPECIAL_CHAR_REQUIRED', 0) }}</td>
+                </tr>
+                <tr>
+                    <td>NO BREACH EXPOSURE</td>
+                    <td>{{ clean_rate }}%</td>
+                    <td>
+                        {% if compromised_count == 0 %}
+                        <span class="breach-clean">COMPLIANT</span>
+                        {% else %}
+                        <span class="breach-compromised">NON-COMPLIANT</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ compromised_count }}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>OVERALL COMPLIANCE GRADE</h3>
+        <div class="alert {% if clean_rate >= 90 and avg_score >= 70 %}alert-info{% else %}alert-error{% endif %}">
+            <strong>[COMPLIANCE: {% if clean_rate >= 90 and avg_score >= 70 %}ACCEPTABLE{% else %}REQUIRES IMPROVEMENT{% endif %}]</strong>
+            BASED ON CURRENT AUDIT DATA
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <strong>[INFO]</strong> NO AUDIT DATA FOR COMPLIANCE ASSESSMENT.
+        </div>
+        {% endif %}
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <button onclick="window.print()">PRINT REPORT</button>
+        <button onclick="window.location.reload()">REFRESH DATA</button>
+        <button onclick="window.location.href='/dashboard'" style="background-color: #ffffff; color: #000000;">VIEW DASHBOARD</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('reportDate').textContent = new Date().toLocaleString();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}CRED-AUDIT | DASHBOARD{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <h2>AUDIT DASHBOARD</h2>
+    
+    <div class="stats-grid">
+        <div class="stat-box">
+            <span class="stat-number">{{ total_audits }}</span>
+            <div class="stat-label">TOTAL AUDITS</div>
+        </div>
+        
+        <div class="stat-box">
+            <span class="stat-number">{{ avg_score }}</span>
+            <div class="stat-label">AVERAGE SCORE</div>
+        </div>
+        
+        <div class="stat-box">
+            <span class="stat-number">{{ compromised_count }}</span>
+            <div class="stat-label">COMPROMISED PASSWORDS</div>
+        </div>
+        
+        <div class="stat-box">
+            <span class="stat-number">{{ ((total_audits - compromised_count) / total_audits * 100) | round(1) if total_audits > 0 else 0 }}%</span>
+            <div class="stat-label">CLEAN RATE</div>
+        </div>
+    </div>
+    
+    <h2>RECENT AUDIT LOG</h2>
+    
+    {% if recent_audits %}
+    <table>
+        <thead>
+            <tr>
+                <th>TIMESTAMP</th>
+                <th>LENGTH</th>
+                <th>SCORE</th>
+                <th>VIOLATIONS</th>
+                <th>BREACH STATUS</th>
+                <th>USER AGENT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for audit in recent_audits %}
+            <tr>
+                <td>{{ audit[1][:19] }}</td>
+                <td>{{ audit[2] }}</td>
+                <td>{{ audit[3] }}</td>
+                <td>
+                    {% if audit[4] %}
+                        {{ audit[4][:30] }}{% if audit[4]|length > 30 %}...{% endif %}
+                    {% else %}
+                        NONE
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="{% if audit[5] == 'COMPROMISED' %}breach-compromised{% else %}breach-clean{% endif %}" 
+                          style="padding: 2px 5px; font-size: 11px;">
+                        {{ audit[5] }}
+                    </span>
+                </td>
+                <td>{{ audit[6][:20] if audit[6] else 'UNKNOWN' }}...</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">
+        <strong>[INFO]</strong> NO AUDIT DATA AVAILABLE. RUN PASSWORD ANALYSIS TO GENERATE LOGS.
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 20px;">
+        <button onclick="refreshDashboard()">REFRESH DATA</button>
+        <button onclick="exportData()">EXPORT LOGS</button>
+        <button onclick="clearLogs()" style="background-color: #ffffff; color: #000000;">CLEAR LOGS</button>
+    </div>
+</div>
+
+<div class="security-summary" style="margin-top: 40px;">
+    <h2>SECURITY SUMMARY</h2>
+    
+    <div class="alert {% if avg_score >= 70 %}alert-info{% else %}alert-error{% endif %}">
+        <strong>[ANALYSIS]</strong> 
+        {% if avg_score >= 70 %}
+            OVERALL PASSWORD SECURITY IS ACCEPTABLE (AVG: {{ avg_score }}/100)
+        {% else %}
+            OVERALL PASSWORD SECURITY NEEDS IMPROVEMENT (AVG: {{ avg_score }}/100)
+        {% endif %}
+    </div>
+    
+    {% if compromised_count > 0 %}
+    <div class="alert alert-error">
+        <strong>[WARNING]</strong> {{ compromised_count }} COMPROMISED PASSWORD(S) DETECTED. 
+        IMMEDIATE ACTION REQUIRED.
+    </div>
+    {% endif %}
+    
+    <h3>RECOMMENDATIONS</h3>
+    <ul class="violations-list">
+        {% if avg_score < 70 %}
+        <li>ENFORCE STRONGER PASSWORD POLICIES</li>
+        <li>IMPLEMENT MANDATORY PASSWORD COMPLEXITY REQUIREMENTS</li>
+        {% endif %}
+        {% if compromised_count > 0 %}
+        <li>IMMEDIATELY RESET ALL COMPROMISED PASSWORDS</li>
+        <li>IMPLEMENT BREACH MONITORING SYSTEM</li>
+        {% endif %}
+        <li>CONDUCT REGULAR PASSWORD AUDITS</li>
+        <li>IMPLEMENT MULTI-FACTOR AUTHENTICATION</li>
+        <li>PROVIDE SECURITY AWARENESS TRAINING</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function refreshDashboard() {
+    window.location.reload();
+}
+
+function exportData() {
+    // Simple CSV export functionality
+    const table = document.querySelector('table');
+    if (!table) {
+        alert('[ERROR] NO DATA TO EXPORT');
+        return;
+    }
+    
+    let csv = '';
+    const rows = table.querySelectorAll('tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('th, td');
+        const rowData = Array.from(cells).map(cell => 
+            '"' + cell.textContent.trim().replace(/"/g, '""') + '"'
+        ).join(',');
+        csv += rowData + '\n';
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cred-audit-logs-' + new Date().toISOString().split('T')[0] + '.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function clearLogs() {
+    if (confirm('CONFIRM: DELETE ALL AUDIT LOGS? THIS ACTION CANNOT BE UNDONE.')) {
+        fetch('/clear-logs', { method: 'POST' })
+            .then(response => {
+                if (response.ok) {
+                    alert('[SUCCESS] AUDIT LOGS CLEARED');
+                    window.location.reload();
+                } else {
+                    alert('[ERROR] FAILED TO CLEAR LOGS');
+                }
+            })
+            .catch(error => {
+                alert('[ERROR] OPERATION FAILED');
+            });
+    }
+}
+</script>
+{% endblock %}

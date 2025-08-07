@@ -1,0 +1,312 @@
+/* CRED-AUDIT: BRUTALIST TERMINAL AESTHETIC */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    background-color: #ffffff;
+    color: #000000;
+    line-height: 1.4;
+    font-size: 14px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* HEADERS */
+h1, h2, h3 {
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 24px;
+    border: 2px solid #000000;
+    padding: 15px;
+    text-align: center;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+h2 {
+    font-size: 18px;
+    border-left: 4px solid #000000;
+    padding-left: 10px;
+}
+
+h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+/* FORMS */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+input[type="password"],
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #000000;
+    background-color: #ffffff;
+    color: #000000;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+input[type="password"]:focus,
+input[type="text"]:focus,
+textarea:focus {
+    outline: none;
+    border: 4px solid #000000;
+}
+
+button {
+    background-color: #000000;
+    color: #ffffff;
+    border: 2px solid #000000;
+    padding: 12px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+}
+
+button:active {
+    border: 4px solid #000000;
+}
+
+/* RESULTS */
+.results {
+    border: 2px solid #000000;
+    padding: 20px;
+    margin-top: 20px;
+    background-color: #ffffff;
+}
+
+.score-display {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.score-number {
+    font-size: 48px;
+    font-weight: bold;
+    border: 2px solid #000000;
+    padding: 20px;
+    display: inline-block;
+    min-width: 120px;
+}
+
+.score-grade {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+    padding: 10px;
+    border: 2px solid #000000;
+}
+
+.grade-SECURE { background-color: #000000; color: #ffffff; }
+.grade-MODERATE { background-color: #ffffff; color: #000000; }
+.grade-WEAK { background-color: #ffffff; color: #000000; }
+.grade-CRITICAL { background-color: #000000; color: #ffffff; }
+
+/* VIOLATIONS */
+.violations-list {
+    list-style: none;
+    margin-top: 15px;
+}
+
+.violations-list li {
+    padding: 8px;
+    border: 1px solid #000000;
+    margin-bottom: 2px;
+    background-color: #ffffff;
+    font-weight: bold;
+}
+
+.violation-item::before {
+    content: "[!] ";
+    font-weight: bold;
+}
+
+/* BREACH STATUS */
+.breach-status {
+    margin-top: 20px;
+    padding: 15px;
+    border: 2px solid #000000;
+    font-weight: bold;
+}
+
+.breach-compromised {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.breach-clean {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* NAVIGATION */
+.nav {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 10px;
+}
+
+.nav a {
+    color: #000000;
+    text-decoration: none;
+    font-weight: bold;
+    margin-right: 20px;
+    padding: 5px 10px;
+    border: 1px solid #000000;
+    text-transform: uppercase;
+}
+
+.nav a:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+/* TABLES */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #000000;
+    padding: 8px;
+    text-align: left;
+    font-family: 'Courier New', monospace;
+}
+
+th {
+    background-color: #000000;
+    color: #ffffff;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+/* STATISTICS */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.stat-box {
+    border: 2px solid #000000;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-top: 5px;
+}
+
+/* LOADING */
+.loading {
+    text-align: center;
+    padding: 20px;
+    border: 2px solid #000000;
+    margin-top: 20px;
+}
+
+.loading::before {
+    content: "[ANALYZING] ";
+    font-weight: bold;
+}
+
+/* ALERTS */
+.alert {
+    padding: 15px;
+    border: 2px solid #000000;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.alert-error {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.alert-info {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 18px;
+        padding: 10px;
+    }
+    
+    .score-number {
+        font-size: 36px;
+        padding: 15px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* TERMINAL CURSOR EFFECT */
+.cursor::after {
+    content: "_";
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}

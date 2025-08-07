@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}CRED-AUDIT | PASSWORD ANALYZER{% endblock %}
+
+{% block content %}
+<div class="analyzer-section">
+    <h2>PASSWORD STRENGTH ANALYZER</h2>
+    
+    <form id="analyzeForm">
+        <div class="form-group">
+            <label for="password">ENTER PASSWORD FOR ANALYSIS:</label>
+            <input type="password" id="password" name="password" placeholder="TYPE PASSWORD HERE..." required>
+        </div>
+        
+        <button type="submit">ANALYZE PASSWORD</button>
+        <button type="button" onclick="togglePasswordVisibility()">TOGGLE VISIBILITY</button>
+        <button type="button" onclick="clearForm()">CLEAR</button>
+    </form>
+    
+    <div id="loading" class="loading" style="display: none;">
+        SCANNING PASSWORD DATABASE...
+    </div>
+    
+    <div id="results" class="results" style="display: none;">
+        <h3>ANALYSIS RESULTS</h3>
+        
+        <div class="score-display">
+            <div id="scoreNumber" class="score-number">--</div>
+            <div id="scoreGrade" class="score-grade">PENDING</div>
+        </div>
+        
+        <div class="analysis-details">
+            <h3>PASSWORD METRICS</h3>
+            <ul id="metrics" class="violations-list">
+            </ul>
+            
+            <h3>POLICY VIOLATIONS</h3>
+            <ul id="violations" class="violations-list">
+            </ul>
+            
+            <div id="breachStatus" class="breach-status">
+                <strong>BREACH STATUS: </strong><span id="breachText">CHECKING...</span>
+            </div>
+        </div>
+        
+        <div class="timestamp">
+            <strong>ANALYSIS TIMESTAMP: </strong><span id="timestamp">--</span>
+        </div>
+    </div>
+</div>
+
+<div class="info-section" style="margin-top: 40px;">
+    <h2>SECURITY INFORMATION</h2>
+    
+    <div class="alert alert-info">
+        <strong>[INFO]</strong> THIS TOOL ANALYZES PASSWORD STRENGTH AND COMPLIANCE. NO PASSWORDS ARE STORED.
+    </div>
+    
+    <h3>SCORING CRITERIA</h3>
+    <ul class="violations-list">
+        <li><strong>LENGTH:</strong> 12+ CHARACTERS = OPTIMAL | 8+ CHARACTERS = MINIMUM</li>
+        <li><strong>COMPLEXITY:</strong> UPPERCASE + LOWERCASE + DIGITS + SPECIAL CHARACTERS</li>
+        <li><strong>PATTERNS:</strong> NO REPEATED SEQUENCES OR COMMON WORDS</li>
+        <li><strong>BREACH CHECK:</strong> COMPARISON AGAINST KNOWN COMPROMISED PASSWORDS</li>
+    </ul>
+    
+    <h3>ENTERPRISE POLICY REQUIREMENTS</h3>
+    <ul class="violations-list">
+        <li>MINIMUM 8 CHARACTERS (RECOMMENDED 12+)</li>
+        <li>MIXED CASE LETTERS (A-Z, a-z)</li>
+        <li>NUMERIC DIGITS (0-9)</li>
+        <li>SPECIAL CHARACTERS (!@#$%^&*)</li>
+        <li>NO DICTIONARY WORDS OR COMMON PATTERNS</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('analyzeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    analyzePassword();
+});
+
+function analyzePassword() {
+    const password = document.getElementById('password').value;
+    
+    if (!password) {
+        alert('[ERROR] NO PASSWORD ENTERED');
+        return;
+    }
+    
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('results').style.display = 'none';
+    
+    // Make request
+    fetch('/analyze', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'password=' + encodeURIComponent(password)
+    })
+    .then(response => response.json())
+    .then(data => {
+        displayResults(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('loading').style.display = 'none';
+        alert('[ERROR] ANALYSIS FAILED');
+    });
+}
+
+function displayResults(data) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+    
+    // Score display
+    document.getElementById('scoreNumber').textContent = data.strength.score;
+    const gradeElement = document.getElementById('scoreGrade');
+    gradeElement.textContent = data.strength.grade;
+    gradeElement.className = 'score-grade grade-' + data.strength.grade;
+    
+    // Metrics
+    const metricsHtml = [
+        `<li>PASSWORD LENGTH: ${data.strength.length} CHARACTERS</li>`,
+        `<li>STRENGTH SCORE: ${data.strength.score}/100</li>`,
+        `<li>SECURITY GRADE: ${data.strength.grade}</li>`
+    ];
+    document.getElementById('metrics').innerHTML = metricsHtml.join('');
+    
+    // Violations
+    const violationsHtml = data.policy_violations.length > 0 
+        ? data.policy_violations.map(v => `<li class="violation-item">${v}</li>`).join('')
+        : '<li style="color: #000; background: #fff;">NO POLICY VIOLATIONS DETECTED</li>';
+    document.getElementById('violations').innerHTML = violationsHtml;
+    
+    // Breach status
+    const breachElement = document.getElementById('breachStatus');
+    if (data.breach_status.compromised) {
+        breachElement.className = 'breach-status breach-compromised';
+        document.getElementById('breachText').textContent = 
+            `COMPROMISED - FOUND IN ${data.breach_status.source} (${data.breach_status.date})`;
+    } else {
+        breachElement.className = 'breach-status breach-clean';
+        document.getElementById('breachText').textContent = 'CLEAN - NOT FOUND IN BREACH DATABASE';
+    }
+    
+    // Timestamp
+    document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleString();
+}
+
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('password');
+    passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+}
+
+function clearForm() {
+    document.getElementById('password').value = '';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('loading').style.display = 'none';
+}
+</script>
+{% endblock %}
